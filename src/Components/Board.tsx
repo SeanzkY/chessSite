@@ -30,6 +30,10 @@ const King = "King"
 const Color1 = "white"
 const Color2 = "black"
 
+const clickedColor = "#b9ca43"    
+
+let prevClickedSet: null | React.Dispatch<React.SetStateAction<boolean>> = null
+
 interface Piece{
     color: typeof Color1 | typeof Color2
     type: typeof Soldier | typeof Knight | typeof Rook | typeof Bishop | typeof Queen | typeof King
@@ -38,8 +42,9 @@ interface Piece{
 interface Square{
     row: number
     column: number
-    piece: Piece | null
+    pieceState: [Piece, React.Dispatch<React.SetStateAction<Piece>>] | null
     color: 1 | 2
+    isClicked: [boolean, React.Dispatch<React.SetStateAction<boolean>>]
 }
 
 function renderPiece(piece: Piece, row: number, column: number) : JSX.Element{
@@ -50,27 +55,39 @@ function renderPiece(piece: Piece, row: number, column: number) : JSX.Element{
     , Color2: {Soldier: blackSoldierPiece, Rook: blackRookPiece, Knight: blackKnightPiece, Bishop: blackBishopPiece, King: blackKingPiece, Queen: blackQueenPiece}
     }
     piecesImagesDict.Color1[Soldier]
-    const [isExists, setIsExists] = useState(true)
     return (
-        isExists ? 
                <div style={{backgroundColor:  "transparent" ,
                  backgroundImage: `url(${piece.color == Color1 ? piecesImagesDict.Color1[piece.type] : piecesImagesDict.Color2[piece.type] })` }} 
-               className="w-[80%] h-[80%] bg-cover bg-center ml-[10%] mt-[10%]"  ></div> : <></>);
+               className="w-[80%] h-[80%] bg-cover bg-center ml-[10%] mt-[10%]"  ></div> );
 
         
 }
 
-function handleBoardClick(){
-    console.log("I have been clicked")
+function handleBoardClick(square: Square){
+    let currClickedSet = square.isClicked[1]
+    let currClicked = square.isClicked[0]
+    if(prevClickedSet != null){
+        prevClickedSet(false)
+        if(prevClickedSet == currClickedSet && currClicked){
+            currClickedSet(false)
+        }
+        else{
+            currClickedSet(true)
+        }
+    }
+    else{
+        currClickedSet(true)
+    }
+    prevClickedSet = currClickedSet
 }
 
 function renderSquare(square: Square, key: number): JSX.Element{
     let backgroundColorList = [squareColor1, squareColor2]
 
     return (
-          <button onClick={handleBoardClick} className={`h-[8vh] bg-cover `} 
-    style={{ backgroundColor: backgroundColorList[square.color - 1]}}   key={key}  >
-       {square.piece == null ? null : renderPiece(square.piece, square.row, square.column)}</button> 
+          <div onClick={() => handleBoardClick(square)} className={`h-[8vh] bg-cover `} 
+    style={{transition:'background-color 0.7s ease',  backgroundColor: square.isClicked[0] ? clickedColor :  backgroundColorList[square.color - 1]}}   key={key}  >
+       {square.pieceState == null ? null : renderPiece(square.pieceState[0], square.row, square.column)}</div> 
     )
 }
 
@@ -93,9 +110,31 @@ function renderBoard(board: Square[][]){
 
 export function Board(){
     let logicalBoard:   Square [][] = Array.from({ length: 8 }, () => Array(8).fill(null));
+    let piecesArr : Piece[] = []
+    let currColor: "black" | "white" = "white" 
+    let piecesRowsIndexesMap = {0:0,1:1,6:3,7:2}
+    // this variable decides which pieces index maps to which index on the board row-wise
+    for(let i=0;i<2;i++){   
+        piecesArr.push({color: currColor, type: "Rook"})
+        piecesArr.push({color: currColor, type: "Knight"})
+        piecesArr.push({color: currColor, type: "Bishop"})
+        piecesArr.push({color: currColor, type: "Queen"})
+        piecesArr.push({color: currColor, type: "King"})
+        piecesArr.push({color: currColor, type: "Bishop"})
+        piecesArr.push({color: currColor, type: "Knight"})
+        piecesArr.push({color: currColor, type: "Rook"})
+
+        for (let j=0; j<COLUMNS;j++){
+            piecesArr.push({color: currColor, type: "Soldier"})
+        }
+               currColor = "black"
+        // so here when we go to wite the 7th (index 7 = 8 row) of the board we acctually map it to the 2 "row" of the array we created that holds the pieces
+        // meaning that it will be the tools that are black and not regular Soldiers (Rook Knight... etc) we do the map in piecesRowIndexesMap[i as 7 | 6 | 1 | 0] 
+    }
     for (let i=0; i < ROWS; i++){
         for(let j=0; j < COLUMNS; j++){
-            logicalBoard[i][j] = {row: i+1, column: j+1, piece: null, color: (j + i % 2) % 2 == 0 ? 1 : 2}
+            logicalBoard[i][j] = {row: i+1, column: j+1, pieceState: i in piecesRowsIndexesMap ? useState(piecesArr[j + piecesRowsIndexesMap[i as 7 | 6 | 1 | 0] * COLUMNS]) : null
+                , color: (j + i % 2) % 2 == 0 ? 1 : 2,isClicked: useState(false)}
         }
     }
     return renderBoard(logicalBoard)

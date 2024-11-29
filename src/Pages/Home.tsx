@@ -1,4 +1,4 @@
-import { Board } from "../Classes/Board"
+import { Board } from "../Components/Board"
 
 
 export function Home(){
