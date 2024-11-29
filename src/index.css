@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add this to index.css */
+body, #root {
+  margin: 0;
+  padding: 0;
+  cursor: default; /* Ensure the default cursor */
+  user-select: none; /* Prevent accidental text selection */
+}
