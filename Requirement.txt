@@ -1,3 +1,7 @@
 npm install -D tailwindcss postcss autoprefixer
 npx tailwindcss init -p
 npm i -D react-router-dom@latest
+npm install @toolpad/core
+npm install @mui/material
+npm install react react-dom
+npm install @emotion/react @emotion/styled
